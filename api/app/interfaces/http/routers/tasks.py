@@ -22,7 +22,7 @@ from app.interfaces.http.schemas import (
     TareaResponse,
 )
 
-router = APIRouter(prefix="/tareas", tags=["tareas"], dependencies=[Depends(verificar_token)])
+router = APIRouter(prefix="/tasks", tags=["task"], dependencies=[Depends(verificar_token)])
 
 
 def _error(status_code: int, code: str, message: str):
@@ -54,43 +54,43 @@ def listar_tareas(
     return TareaListResponse(items=list(items), total=total, page=page, size=size)
 
 
-@router.get("/{tarea_id}", response_model=TareaResponse)
-def obtener_tarea(tarea_id: uuid.UUID, repo: TaskRepository = Depends(get_task_repository)):
+@router.get("/{task_id}", response_model=TareaResponse)
+def obtener_tarea(task_id: uuid.UUID, repo: TaskRepository = Depends(get_task_repository)):
     try:
-        return ObtenerTareaUseCase(repo).execute(tarea_id)
+        return ObtenerTareaUseCase(repo).execute(task_id)
     except TareaNoEncontradaError:
         _error(status.HTTP_404_NOT_FOUND, "TAREA_NO_ENCONTRADA", "La tarea no existe")
 
 
-@router.put("/{tarea_id}", response_model=TareaResponse)
+@router.put("/{task_id}", response_model=TareaResponse)
 def actualizar_tarea(
-    tarea_id: uuid.UUID,
+    task_id: uuid.UUID,
     body: ActualizarTareaRequest,
     repo: TaskRepository = Depends(get_task_repository),
 ):
     try:
-        return ActualizarTareaUseCase(repo).execute(tarea_id, **body.model_dump(exclude_unset=True))
+        return ActualizarTareaUseCase(repo).execute(task_id, **body.model_dump(exclude_unset=True))
     except TareaNoEncontradaError:
         _error(status.HTTP_404_NOT_FOUND, "TAREA_NO_ENCONTRADA", "La tarea no existe")
 
 
-@router.patch("/{tarea_id}/completar", response_model=TareaResponse)
+@router.patch("/{task_id}/completar", response_model=TareaResponse)
 def completar_tarea(
-    tarea_id: uuid.UUID,
+    task_id: uuid.UUID,
     repo: TaskRepository = Depends(get_task_repository),
     publisher: EventPublisher = Depends(get_event_publisher),
 ):
     try:
-        return CompletarTareaUseCase(repo, publisher).execute(tarea_id)
+        return CompletarTareaUseCase(repo, publisher).execute(task_id)
     except TareaNoEncontradaError:
         _error(status.HTTP_404_NOT_FOUND, "TAREA_NO_ENCONTRADA", "La tarea no existe")
     except TransicionInvalidaError as e:
         _error(status.HTTP_409_CONFLICT, "TRANSICION_INVALIDA", str(e))
 
 
-@router.delete("/{tarea_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_tarea(tarea_id: uuid.UUID, repo: TaskRepository = Depends(get_task_repository)):
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_tarea(task_id: uuid.UUID, repo: TaskRepository = Depends(get_task_repository)):
     try:
-        EliminarTareaUseCase(repo).execute(tarea_id)
+        EliminarTareaUseCase(repo).execute(task_id)
     except TareaNoEncontradaError:
         _error(status.HTTP_404_NOT_FOUND, "TAREA_NO_ENCONTRADA", "La tarea no existe")

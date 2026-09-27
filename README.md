@@ -66,12 +66,12 @@ TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
   -d '{"usuario":"demo"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
 
 # 2. Crear una tarea
-curl -X POST http://localhost:8000/tareas \
+curl -X POST http://localhost:8000/tasks \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"titulo":"Revisar reporte","descripcion":"Reporte mensual","prioridad":"alta","fecha_limite":"2026-12-31"}'
 
 # 3. Completar la tarea (dispara el evento TareaCompletada)
-curl -X PATCH http://localhost:8000/tareas/<id>/completar -H "Authorization: Bearer $TOKEN"
+curl -X PATCH http://localhost:8000/tasks/<id>/completar -H "Authorization: Bearer $TOKEN"
 
 # 4. Verificar la auditoría generada por el worker
 docker compose exec db psql -U tasks -d tasks -c "SELECT * FROM auditoria;"
